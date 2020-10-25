@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.11.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (clip, 'clip')</l>
+<l>dev_display (clip)</l>
+<l>threshold (clip, Region, 0, 40)</l>
+<l>connection (Region, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 2500, 5100)</l>
+<l>orientation_region (SelectedRegions, Phi)</l>
+<l>area_center (SelectedRegions, Area, Row, Column)</l>
+<l>dev_disp_text (deg(Phi) + ' degrees', 'image', Row, Column, 'black', [], [])</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
