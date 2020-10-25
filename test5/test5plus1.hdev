@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.11.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>* Pin Measurement: Example for the application of the measure package</c>
+<c>* including a lot of visualization operators</c>
+<c>* </c>
+<c></c>
+<l>read_image (Image, 'test5plus1.jpg')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<c></c>
+<c></c>
+<c></c>
+<l>Row := (451.146+ 2630.65)/2-10</l>
+<l>Column := (1629.25+ 1720.24)/2</l>
+<l>Phi := -89.78*3.1415926/180</l>
+<c></c>
+<l>Length1 := (2630.65-451.146)/2</l>
+<l>Length2 := ( 1720.24-1629.25)/8</l>
+<l>gen_rectangle2 (Rectangle, Row, Column, Phi, Length1, Length2)</l>
+<l>gen_measure_rectangle2 (Row, Column, Phi, Length1, Length2, Width, Height, 'nearest_neighbor', MeasureHandle)</l>
+<c></c>
+<c></c>
+<l>measure_pairs (Image, MeasureHandle, 2, 3, 'negative', 'all', RowEdgeFirst, ColumnEdgeFirst, AmplitudeFirst, RowEdgeSecond, ColumnEdgeSecond, AmplitudeSecond, PinWidth, PinDistance)</l>
+<l>dev_set_color ('red')</l>
+<c></c>
+<l>avgPinWidth := sum(PinWidth) / |PinWidth|</l>
+<l>avgPinDistance := sum(PinDistance) / |PinDistance|</l>
+<l>numPins := |PinWidth|</l>
+<l>pixPerMM := Length1*2/numPins</l>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

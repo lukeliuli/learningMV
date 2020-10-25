@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.11.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>* Pin Measurement: Example for the application of the measure package</c>
+<c>* including a lot of visualization operators</c>
+<c>* </c>
+<c></c>
+<l>read_image (Image, 'ic_pin')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<c></c>
+<l>Row := 47</l>
+<l>Column := 485</l>
+<l>Phi := 0</l>
+<l>Length1 := 420</l>
+<l>Length2 := 10</l>
+<c></c>
+<l>gen_rectangle2 (Rectangle, Row, Column, Phi, Length1, Length2)</l>
+<l>gen_measure_rectangle2 (Row, Column, Phi, Length1, Length2, Width, Height, 'nearest_neighbor', MeasureHandle)</l>
+<c></c>
+<c></c>
+<l>measure_pairs (Image, MeasureHandle, 1.5, 30, 'negative', 'all', RowEdgeFirst, ColumnEdgeFirst, AmplitudeFirst, RowEdgeSecond, ColumnEdgeSecond, AmplitudeSecond, PinWidth, PinDistance)</l>
+<c></c>
+<l>avgPinWidth := sum(PinWidth) / |PinWidth|</l>
+<l>avgPinDistance := sum(PinDistance) / |PinDistance|</l>
+<l>numPins := |PinWidth|</l>
+<c></c>
+<c></c>
+<c></c>
+<l>Row := 508</l>
+<l>Column := 200</l>
+<l>Phi := -1.5708</l>
+<l>Length1 := 482</l>
+<l>Length2 := 35</l>
+<l>gen_rectangle2 (Rectangle, Row, Column, Phi, Length1, Length2)</l>
+<l>gen_measure_rectangle2 (Row, Column, Phi, Length1, Length2, Width, Height, 'nearest_neighbor', MeasureHandle)</l>
+<c></c>
+<l>measure_pos (Image, MeasureHandle, 1.5, 30, 'all', 'all', RowEdge, ColumnEdge, Amplitude, Distance)</l>
+<l>PinHeight1 := RowEdge[1] - RowEdge[0]</l>
+<l>PinHeight2 := RowEdge[3] - RowEdge[2]</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
