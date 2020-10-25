@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.11.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>* This example program shows how to use shape-based</c>
+<c>* matching to find objects that are slightly deformed</c>
+<c>* using the parameter 'max_deformations'.</c>
+<c>* </c>
+<c>* Note that to find deformed objects you can</c>
+<c>* - apply shape-based matching using the parameter</c>
+<c>* 'max_deformation' or</c>
+<c>* - apply local deformable matching.</c>
+<c>* </c>
+<c>* In this example, the task is solved with shape-based</c>
+<c>* matching and the parameter 'max_deformation'.</c>
+<c>* You can compare it to the example</c>
+<c>* 'find_cocoa_packages_local_deformable.hdev', which</c>
+<c>* solves the same task with local deformable matching.</c>
+<c>* Shape-based matching is significantly faster, but</c>
+<c>* local deformable matching is more robust to different</c>
+<c>* types of deformations.</c>
+<c>* For example, the deformations in the example program</c>
+<c>* 'find_peanut_chocolate_candies_local_deformable.hdev'</c>
+<c>* can not be handled by shape-based matching.</c>
+<c>* </c>
+<c></c>
+<l>read_image (ModelImage, 'food/cocoa_package_model')</l>
+<c>* </c>
+<c>* Create and display the shape model</c>
+<l>create_shape_model (ModelImage, 'auto', rad(-20), rad(40), 'auto', 'auto', 'use_polarity', [40,60,'auto_min_size'], 10, ModelID)</l>
+<c></c>
+<c></c>
+<c>* </c>
+<l>NumImages := 13</l>
+<l>for Index := 1 to NumImages by 1</l>
+<l>    read_image (Image, 'food/cocoa_packages_' + Index$'02')</l>
+<c>    * Reduce the image resolution for a speed-up</c>
+<l>    find_shape_model (Image, ModelID, rad(-20), rad(40), 0.6, 0, 0.5, ['least_squares','max_deformation 16'], 0, 0.4, Row, Column, Angle, Score)</l>
+<l>    dev_display (Image)</l>
+<l>    dev_display_shape_matching_results (ModelID, 'green', Row, Column, Angle, 1, 1, 0)   </l>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
