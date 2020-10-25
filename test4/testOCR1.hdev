@@ -17,6 +17,7 @@
 <l>Column2 := 370</l>
 <l>Px := Column1 + (Column2 - Column1) / 2</l>
 <l>Py := Row1 + (Row2 - Row1) / 2</l>
+<c>*importance1</c>
 <l>gen_rectangle1 (Rectangle1, Row1, Column1, Row2, Column2)</l>
 <c>* orientation correction</c>
 <l>text_line_orientation (Needle, Needle, 35, -0.523599, 0.523599, OrientationAngle)</l>
@@ -33,8 +34,6 @@
 <c></c>
 <c></c>
 <l>clip_region (RemovedNoise, RawSegmentation, 53, 75, 260, 356)</l>
-<c></c>
-<c></c>
 <l>closing_circle (RawSegmentation, ClosedPatterns, 6)</l>
 <c></c>
 <l>opening_rectangle1 (ClosedPatterns, SplitPatterns, 1, 5)</l>
@@ -42,45 +41,24 @@
 <l>select_shape (ConnPatterns, CharCandidates, 'area', 'and', 150, 5999)</l>
 <l>shape_trans (CharCandidates, CharBlocks, 'rectangle1')</l>
 <c></c>
-<c></c>
-<l>partition_rectangle (CharBlocks, CharCandidates, 25, 100)</l>
+<c>*importance2</c>
+<l>partition_rectangle (CharBlocks, CharCandidates, 25, 50)</l>
 <l>intersection (CharCandidates, RawSegmentation, Characters)</l>
 <l>closing_circle (Characters, IntermedCharacters, 2.5)</l>
 <c></c>
 <c></c>
-<l>stop ()</l>
-<l>gen_empty_obj (Characters)</l>
-<l>count_obj (IntermedCharacters, NumIntermediate)</l>
-<l>dev_display (Rotated)</l>
-<l>for i := 1 to NumIntermediate by 1</l>
-<l>    dev_set_color ('red')</l>
-<l>    select_obj (IntermedCharacters, Char, i)</l>
-<l>    dev_display (Char)</l>
-<l>    connection (Char, CharParts)</l>
-<l>    select_shape (CharParts, CharCandidates, 'area', 'and', 40, 99999)</l>
-<l>    union1 (CharCandidates, Char)</l>
-<l>    dev_set_color ('green')</l>
-<l>    dev_display (Char)</l>
-<l>    concat_obj (Characters, Char, Characters)</l>
-<l>endfor</l>
+<c>*importance3</c>
 <l>select_shape (Characters, Heigh, 'height', 'and', 24, 50)</l>
 <l>sort_region (Heigh, FinalCharacters, 'character', 'true', 'row')</l>
-<l>dev_set_color ('red')</l>
-<l>dev_set_draw ('margin')</l>
-<l>dev_display (Rotated)</l>
-<l>dev_display (FinalCharacters)</l>
-<l>dev_set_color ('green')</l>
-<l>dev_set_line_width (3)</l>
-<l>dev_set_shape ('rectangle1')</l>
-<l>dev_display (FinalCharacters)</l>
-<l>dev_set_shape ('original')</l>
-<l>dev_set_line_width (1)</l>
-<l>dev_set_draw ('fill')</l>
+<c></c>
+<c></c>
 <l>read_ocr_class_mlp ('DotPrint_NoRej', OCRHandle)</l>
 <l>do_ocr_multi_class_mlp (FinalCharacters, Rotated, OCRHandle, Class, Confidence)</l>
 <l>smallest_rectangle1 (FinalCharacters, Row11, Column1, Row2, Column21)</l>
-<l>disp_message (WindowID, Class, 'image', Row2, Column1, 'green', 'false')</l>
-<l>dev_update_window ('on')</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
 </body>
 <docu id="main">
 <parameters/>
