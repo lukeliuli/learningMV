@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.11.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>* This example program shows how to use the operator get_circle_pose.</c>
+<c>* First, the contours of the drill-holes of a rim are extracted.</c>
+<c>* Then, the 3D position of the center of these contours</c>
+<c>*用的家里面的工业摄像头，真实距离差为4.2cm，测量的距离差为5.3，误差有点到</c>
+<l>CameraParameters := ['area_scan_division',0.0178755,-312.056,2.20047e-006,2.2e-006,1146.79,973.445,2592,1944]</l>
+<l>CameraPose := [0.00949335,-0.00134993,0.493843,359.512,1.14645,359.763,0]</l>
+<l>Radius := 0.025/2</l>
+<l>dev_update_off ()</l>
+<l>read_image (Image, 'twoCircles2.JPG')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<c></c>
+<l>threshold (Image, Dark, 90, 255)</l>
+<l>connection (Dark, DarkRegions)</l>
+<l>select_shape (DarkRegions, DarkRegions2,'area', 'and', 100000,600000)</l>
+<l>select_shape (DarkRegions2, Circles, 'circularity', 'and', 0.9,1)</l>
+<l>closing_circle (Circles, ROIOuter, 8.5)</l>
+<l>opening_circle (Circles, ROIOuter, 8.5)</l>
+<c></c>
+<l>dilation_circle (Circles, ROIOuter, 8.5)</l>
+<l>erosion_circle (Circles, ROIInner, 8.5)</l>
+<l>difference (ROIOuter, ROIInner, ROI)</l>
+<l>union1 (ROI, ROIEdges)</l>
+<c></c>
+<l>reduce_domain (Image, ROIEdges, RimReduced)</l>
+<l>edges_sub_pix (RimReduced, Edges, 'canny', 2, 20, 40)</l>
+<l>select_contours_xld (Edges, EdgesSelect, 'contour_length', 1000, 2000, 0, 0)</l>
+<c></c>
+<c>*********************************************</c>
+<l>select_obj (EdgesSelect,Edges1, 1)</l>
+<l>count_obj (Edges1, Number)</l>
+<l>get_circle_pose (Edges1, CameraParameters, gen_tuple_const(Number,Radius), 'center_normal', C1,CC1)</l>
+<l>*get_circle_pose (Edges1, CameraParameters, gen_tuple_const(Number,Radius), 'pose', Pose1, Pose2)</l>
+<c></c>
+<c></c>
+<c>********************************************</c>
+<l>select_obj (EdgesSelect,Edges2, 2)</l>
+<l>count_obj (Edges2, Number)</l>
+<l>get_circle_pose (Edges2, CameraParameters, gen_tuple_const(Number,Radius), 'center_normal', C2, CC2)</l>
+<l>*get_circle_pose (Edges1, CameraParameters, gen_tuple_const(Number,Radius), 'pose', PoseB1, PoseB2)</l>
+<c></c>
+<l>Z1 := C1[2]</l>
+<l>Z2 := C2[2]</l>
+<l>dist := Z2-Z1</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="p_cluster_normals">
+<interface>
+<ic>
+<par name="Pose1" base_type="ctrl" dimension="0"/>
+<par name="Pose2" base_type="ctrl" dimension="0"/>
+<par name="CenterNormal1" base_type="ctrl" dimension="0"/>
+<par name="CenterNormal2" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="ClusterP1" base_type="ctrl" dimension="0"/>
+<par name="ClusterP2" base_type="ctrl" dimension="0"/>
+<par name="ClusterCN1" base_type="ctrl" dimension="0"/>
+<par name="ClusterCN2" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>Number := |CenterNormal1| / 6</l>
+<l>ClusterP1 := Pose1[0:6]</l>
+<l>ClusterP2 := Pose2[0:6]</l>
+<l>ClusterCN1 := CenterNormal1[0:5]</l>
+<l>ClusterCN2 := CenterNormal2[0:5]</l>
+<l>NA := ClusterCN1[3:5]</l>
+<l>NB := ClusterCN2[3:5]</l>
+<l>for i := 1 to Number - 1 by 1</l>
+<l>    N1 := CenterNormal1[i * 6 + 3:i * 6 + 5]</l>
+<l>    N2 := CenterNormal2[i * 6 + 3:i * 6 + 5]</l>
+<l>    N1NA := sum(N1 * NA)</l>
+<l>    N1NB := sum(N1 * NB)</l>
+<l>    N2NA := sum(N2 * NA)</l>
+<l>    N2NB := sum(N2 * NB)</l>
+<l>    tuple_sort_index ([N1NA,N1NB,N2NA,N2NB] * -1, Indices)</l>
+<l>    if (Indices[0] == 0 or Indices[0] == 3)</l>
+<l>        ClusterP1 := [ClusterP1,Pose1[i * 7:i * 7 + 6]]</l>
+<l>        ClusterP2 := [ClusterP2,Pose2[i * 7:i * 7 + 6]]</l>
+<l>        ClusterCN1 := [ClusterCN1,CenterNormal1[i * 6:i * 6 + 5]]</l>
+<l>        ClusterCN2 := [ClusterCN2,CenterNormal2[i * 6:i * 6 + 5]]</l>
+<l>    else</l>
+<l>        ClusterP1 := [ClusterP1,Pose2[i * 7:i * 7 + 6]]</l>
+<l>        ClusterP2 := [ClusterP2,Pose1[i * 7:i * 7 + 6]]</l>
+<l>        ClusterCN1 := [ClusterCN1,CenterNormal2[i * 6:i * 6 + 5]]</l>
+<l>        ClusterCN2 := [ClusterCN2,CenterNormal1[i * 6:i * 6 + 5]]</l>
+<l>    endif</l>
+<l>endfor</l>
+<c>* </c>
+<l>idx := []</l>
+<l>for i := 0 to Number - 1 by 1</l>
+<l>    idx := [idx,i * 6 + 3]</l>
+<l>endfor</l>
+<l>DeviationC1 := deviation(subset(ClusterCN1,idx)) + deviation(subset(ClusterCN1,idx + 1)) + deviation(subset(ClusterCN1,idx + 2))</l>
+<l>DeviationC2 := deviation(subset(ClusterCN2,idx)) + deviation(subset(ClusterCN2,idx + 1)) + deviation(subset(ClusterCN2,idx + 2))</l>
+<l>if (DeviationC2 &lt; DeviationC1)</l>
+<l>    Help := ClusterP1</l>
+<l>    ClusterP1 := ClusterP2</l>
+<l>    ClusterP2 := Help</l>
+<l>    Help := ClusterCN1</l>
+<l>    ClusterCN1 := ClusterCN2</l>
+<l>    ClusterCN2 := Help</l>
+<l>endif</l>
+<l>return ()</l>
+</body>
+<docu id="p_cluster_normals">
+<short lang="en_US">Out of the two possible orientations per ellipse, Cluster1 contains the ones, where the normal vectors point in a similar direction</short>
+<parameters>
+<parameter id="CenterNormal1"/>
+<parameter id="CenterNormal2"/>
+<parameter id="ClusterCN1"/>
+<parameter id="ClusterCN2"/>
+<parameter id="ClusterP1"/>
+<parameter id="ClusterP2"/>
+<parameter id="Pose1"/>
+<parameter id="Pose2"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="p_determine_ellipse_contours">
+<interface>
+<io>
+<par name="Image" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="EllipseContoursLarge" base_type="iconic" dimension="0"/>
+<par name="EllipseContoursSmall" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="visualization" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="NumberLarge" base_type="ctrl" dimension="0"/>
+<par name="NumberSmall" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>threshold (Image, Dark, 0, 128)</l>
+<l>if (visualization)</l>
+<l>    dev_display (Image)</l>
+<l>    dev_set_color ('green')</l>
+<l>    dev_set_draw ('fill')</l>
+<l>    dev_display (Dark)</l>
+<l>    stop ()</l>
+<l>endif</l>
+<c>* </c>
+<l>connection (Dark, DarkRegions)</l>
+<l>select_shape (DarkRegions, Circles, ['circularity','area'], 'and', [0.85,50], [1.0,99999])</l>
+<l>if (visualization)</l>
+<l>    dev_display (Image)</l>
+<l>    dev_set_colored (12)</l>
+<l>    dev_display (Circles)</l>
+<l>    stop ()</l>
+<l>endif</l>
+<c>* </c>
+<l>dilation_circle (Circles, ROIOuter, 8.5)</l>
+<l>erosion_circle (Circles, ROIInner, 8.5)</l>
+<l>difference (ROIOuter, ROIInner, ROI)</l>
+<l>union1 (ROI, ROIEdges)</l>
+<l>if (visualization)</l>
+<l>    dev_display (Image)</l>
+<l>    dev_set_draw ('margin')</l>
+<l>    dev_set_color ('green')</l>
+<l>    dev_display (ROIEdges)</l>
+<l>    stop ()</l>
+<l>endif</l>
+<c>* </c>
+<l>reduce_domain (Image, ROIEdges, RimReduced)</l>
+<l>edges_sub_pix (RimReduced, Edges, 'canny', 2, 20, 40)</l>
+<c>* </c>
+<l>select_contours_xld (Edges, EdgesLarge, 'contour_length', 200, 300, 0, 0)</l>
+<l>count_obj (EdgesLarge, NumberLarge)</l>
+<l>fit_ellipse_contour_xld (EdgesLarge, 'ftukey', -1, 2, 0, 200, 3, 2, Row, Column, Phi, Ra, Rb, StartPhi, EndPhi, PointOrder)</l>
+<l>gen_ellipse_contour_xld (EllipseContoursLarge, Row, Column, gen_tuple_const(NumberLarge,0), Ra, Rb, gen_tuple_const(NumberLarge,0), gen_tuple_const(NumberLarge,rad(360)), gen_tuple_const(NumberLarge,'positive'), 1.5)</l>
+<c>* </c>
+<l>select_contours_xld (Edges, EdgesSmall, 'contour_length', 100, 200, 0, 0)</l>
+<l>count_obj (EdgesSmall, NumberSmall)</l>
+<l>fit_ellipse_contour_xld (EdgesSmall, 'ftukey', -1, 2, 0, 200, 3, 2, Row, Column, Phi, Ra, Rb, StartPhi, EndPhi, PointOrder)</l>
+<l>gen_ellipse_contour_xld (EllipseContoursSmall, Row, Column, gen_tuple_const(NumberSmall,0), Ra, Rb, gen_tuple_const(NumberSmall,0), gen_tuple_const(NumberSmall,rad(360)), gen_tuple_const(NumberSmall,'positive'), 1.5)</l>
+<c>* </c>
+<l>if (visualization)</l>
+<l>    dev_display (Image)</l>
+<l>    dev_set_color ('green')</l>
+<l>    dev_display (EllipseContoursLarge)</l>
+<l>    dev_set_color ('blue')</l>
+<l>    dev_display (EllipseContoursSmall)</l>
+<l>    stop ()</l>
+<l>endif</l>
+<l>return ()</l>
+</body>
+<docu id="p_determine_ellipse_contours">
+<short lang="en_US">Determines large and small elliptical contours.</short>
+<parameters>
+<parameter id="EllipseContoursLarge"/>
+<parameter id="EllipseContoursSmall"/>
+<parameter id="Image"/>
+<parameter id="NumberLarge"/>
+<parameter id="NumberSmall"/>
+<parameter id="visualization"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="p_cluster_normals_COPY_1">
+<interface>
+<ic>
+<par name="Pose1" base_type="ctrl" dimension="0"/>
+<par name="Pose2" base_type="ctrl" dimension="0"/>
+<par name="CenterNormal1" base_type="ctrl" dimension="0"/>
+<par name="CenterNormal2" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="ClusterP1" base_type="ctrl" dimension="0"/>
+<par name="ClusterP2" base_type="ctrl" dimension="0"/>
+<par name="ClusterCN1" base_type="ctrl" dimension="0"/>
+<par name="ClusterCN2" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>Number := |CenterNormal1| / 6</l>
+<l>ClusterP1 := Pose1[0:6]</l>
+<l>ClusterP2 := Pose2[0:6]</l>
+<l>ClusterCN1 := CenterNormal1[0:5]</l>
+<l>ClusterCN2 := CenterNormal2[0:5]</l>
+<l>NA := ClusterCN1[3:5]</l>
+<l>NB := ClusterCN2[3:5]</l>
+<l>for i := 1 to Number - 1 by 1</l>
+<l>    N1 := CenterNormal1[i * 6 + 3:i * 6 + 5]</l>
+<l>    N2 := CenterNormal2[i * 6 + 3:i * 6 + 5]</l>
+<l>    N1NA := sum(N1 * NA)</l>
+<l>    N1NB := sum(N1 * NB)</l>
+<l>    N2NA := sum(N2 * NA)</l>
+<l>    N2NB := sum(N2 * NB)</l>
+<l>    tuple_sort_index ([N1NA,N1NB,N2NA,N2NB] * -1, Indices)</l>
+<l>    if (Indices[0] == 0 or Indices[0] == 3)</l>
+<l>        ClusterP1 := [ClusterP1,Pose1[i * 7:i * 7 + 6]]</l>
+<l>        ClusterP2 := [ClusterP2,Pose2[i * 7:i * 7 + 6]]</l>
+<l>        ClusterCN1 := [ClusterCN1,CenterNormal1[i * 6:i * 6 + 5]]</l>
+<l>        ClusterCN2 := [ClusterCN2,CenterNormal2[i * 6:i * 6 + 5]]</l>
+<l>    else</l>
+<l>        ClusterP1 := [ClusterP1,Pose2[i * 7:i * 7 + 6]]</l>
+<l>        ClusterP2 := [ClusterP2,Pose1[i * 7:i * 7 + 6]]</l>
+<l>        ClusterCN1 := [ClusterCN1,CenterNormal2[i * 6:i * 6 + 5]]</l>
+<l>        ClusterCN2 := [ClusterCN2,CenterNormal1[i * 6:i * 6 + 5]]</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<l>idx := []</l>
+<l>for i := 0 to Number - 1 by 1</l>
+<l>    idx := [idx,i * 6 + 3]</l>
+<l>endfor</l>
+<l>DeviationC1 := deviation(subset(ClusterCN1,idx)) + deviation(subset(ClusterCN1,idx + 1)) + deviation(subset(ClusterCN1,idx + 2))</l>
+<l>DeviationC2 := deviation(subset(ClusterCN2,idx)) + deviation(subset(ClusterCN2,idx + 1)) + deviation(subset(ClusterCN2,idx + 2))</l>
+<l>if (DeviationC2 &lt; DeviationC1)</l>
+<l>    Help := ClusterP1</l>
+<l>    ClusterP1 := ClusterP2</l>
+<l>    ClusterP2 := Help</l>
+<l>    Help := ClusterCN1</l>
+<l>    ClusterCN1 := ClusterCN2</l>
+<l>    ClusterCN2 := Help</l>
+<l>endif</l>
+<l>return ()</l>
+</body>
+<docu id="p_cluster_normals_COPY_1">
+<short lang="en_US">Out of the two possible orientations per ellipse, Cluster1 contains the ones, where the normal vectors point in a similar direction</short>
+<short lang="zh_CN">Out of the two possible orientations per ellipse, Cluster1 contains the ones, where the normal vectors point in a similar direction</short>
+<parameters>
+<parameter id="CenterNormal1"/>
+<parameter id="CenterNormal2"/>
+<parameter id="ClusterCN1"/>
+<parameter id="ClusterCN2"/>
+<parameter id="ClusterP1"/>
+<parameter id="ClusterP2"/>
+<parameter id="Pose1"/>
+<parameter id="Pose2"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

@@ -12,7 +12,7 @@
 <l>connection (Regions1, ConnectedRegions)</l>
 <l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 200000, 360000)</l>
 <l>area_center (SelectedRegions, Area, Row, Column)</l>
-<l>sort_region(ConnectedRegions,SortedRegions,'first_point','true','column')</l>
+<l>sort_region(SelectedRegions,SortedRegions,'first_point','true','column')</l>
 <l>select_obj(SortedRegions,Circle,1)</l>
 <l>area_center(Circle,AreaCircle, RowCircle, ColumnCircle)</l>
 <l>select_obj(SortedRegions,Circle2,2)</l>

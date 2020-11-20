@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.11.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>* Find light objects in the image</c>
+<l>read_image (Image, 'bar1.JPG')</l>
+<c></c>
+<l>threshold (Image, Region, 152,255)</l>
+<l>closing_rectangle1(Region,RegionClose,50,50)</l>
+<l>opening_rectangle1(RegionClose,RegionOpen,50,50)</l>
+<c></c>
+<l>connection (RegionOpen, ConnectedRegions)</l>
+<c></c>
+<l>fill_up (ConnectedRegions, RegionFillUp)</l>
+<c>* Select rectangular solid objects with certain minimal area</c>
+<l>select_shape (RegionFillUp, Objects, ['area','convexity','rectangularity'], 'and', [20000,0.85,0.60], [4000000,1,1])</l>
+<c>* Filter out features on the border</c>
+<c></c>
+<l>count_obj (Objects, NumberOfRegions)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
