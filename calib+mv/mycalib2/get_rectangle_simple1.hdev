@@ -4,7 +4,11 @@
 <interface/>
 <body>
 <c>* Find light objects in the image</c>
-<l>read_image (Image, '419rect1.JPG')</l>
+<l>read_image (Image, 'simple1.JPG')</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* 图形窗口右键菜单设置结束</c>
 <c></c>
 <l>threshold (Image, Region, 128,255)</l>
 <l>closing_rectangle1(Region,RegionClose,250,250)</l>
@@ -26,17 +30,29 @@
 <l>reduce_domain (Image, RectBorders, ImageReduced)</l>
 <c></c>
 <c></c>
-<l>edges_sub_pix(Image,Edges,'lanser2',0.5,20,40)</l>
+<l>edges_sub_pix(ImageReduced,Edges,'lanser2',0.5,20,40)</l>
 <l>select_shape_xld (Edges, SelectedEdges, 'contlength', 'and', 100, 10000)</l>
 <l>union_adjacent_contours_xld (SelectedEdges, UnionEdges, 10, 1, 'attr_keep')</l>
+<l>close_contours_xld (UnionEdges, ClosedContours)</l>
 <c></c>
-<l>RectWidth := 0.0645</l>
+<l>RectWidth := 0.16</l>
 <c></c>
-<l>RectHeight := 0.0255</l>
-<l>read_cam_par ('419camera1.cal', CamParam)</l>
-<l>read_pose ('419camera1pos.dat', CamPose)</l>
+<l>RectHeight := 0.0785</l>
+<l>read_cam_par ('903A1.cal', CamParam)</l>
+<l>read_pose ('903A1.dat', CamPose)</l>
 <l>get_rectangle_pose (UnionEdges, CamParam, RectWidth, RectHeight, 'tukey', 2, Pose, PoseCov, Error)</l>
 <c></c>
+<l>DegX:= deg(Pose[3])</l>
+<l>DegY:= deg(Pose[4])</l>
+<l>DegZ:= deg(Pose[5])</l>
+<c></c>
+<c></c>
+<l>flip_x (Pose, Pose)</l>
+<c>* </c>
+<c>* Based on the calculated pose, fetch and rectify an image of the bar-code field</c>
+<c></c>
+<l>rectify_subimage(ClosedContours, Image, ImageWorld, CamParam, Pose, 320, 200)</l>
+<l>dev_display (ImageWorld)</l>
 </body>
 <docu id="main">
 <parameters/>
@@ -175,6 +191,79 @@
 <parameter id="RectWidth"/>
 <parameter id="RectangularRegions"/>
 <parameter id="WindowHandle"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="rectify_subimage">
+<interface>
+<io>
+<par name="Frame" base_type="iconic" dimension="0"/>
+<par name="Image" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="ImageRect" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="CamParam" base_type="ctrl" dimension="0"/>
+<par name="Pose" base_type="ctrl" dimension="0"/>
+<par name="Width" base_type="ctrl" dimension="0"/>
+<par name="Height" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<l>contour_to_world_plane_xld (Frame, ContoursTrans, CamParam, Pose, 1)</l>
+<l>smallest_rectangle1_xld (ContoursTrans, MinY, MinX, MaxY, MaxX)</l>
+<l>set_origin_pose (Pose, MinX, MinY, 0, PoseNewOrigin)</l>
+<l>if (|Width| == 1)</l>
+<c>    * forces a desired size of the target image</c>
+<l>    Scale := ((MaxX - MinX) / Width + (MaxY - MinY) / Height) / 2</l>
+<l>    Size := [Width,Height]</l>
+<l>else</l>
+<c>    * preserves similar pixel size as in the original</c>
+<l>    image_points_to_world_plane (CamParam, Pose, [0,0,1], [0,1,0], 1, WX, WY)</l>
+<l>    distance_pp (WY[0], WX[0], WY[1], WX[1], WL1)</l>
+<l>    distance_pp (WY[0], WX[0], WY[2], WX[2], WL2)</l>
+<l>    Scale := (WL1 + WL2) / 2</l>
+<l>    Size := [MaxX - MinX,MaxY - MinY] / Scale</l>
+<l>endif</l>
+<l>image_to_world_plane (Image, ImageRect, CamParam, PoseNewOrigin, Size[0], Size[1], Scale, 'bilinear')</l>
+<l>return ()</l>
+</body>
+<docu id="rectify_subimage">
+<parameters>
+<parameter id="CamParam"/>
+<parameter id="Frame"/>
+<parameter id="Height"/>
+<parameter id="Image"/>
+<parameter id="ImageRect"/>
+<parameter id="Pose"/>
+<parameter id="Width"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="flip_x">
+<interface>
+<ic>
+<par name="Pose" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="PoseOut" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* modify the pose, as if the object was flipped around its x-axis</c>
+<l>PoseOut := Pose</l>
+<l>PoseOut[3] := Pose[3] + 180</l>
+<l>PoseOut[4] := -Pose[4]</l>
+<l>PoseOut[5] := -Pose[5]</l>
+<l>return ()</l>
+</body>
+<docu id="flip_x">
+<short lang="en_US">modify the pose, as if the object was flipped around its x-axis</short>
+<short lang="zh_CN">modify the pose, as if the object was flipped around its x-axis</short>
+<parameters>
+<parameter id="Pose"/>
+<parameter id="PoseOut"/>
 </parameters>
 </docu>
 </procedure>
