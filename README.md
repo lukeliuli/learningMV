@@ -5,3 +5,4 @@
 4. test4: OCR实验,halcon
 5. test5: ICpin测量,halcon
 6. calib+mv:标定相关 
+7. 
