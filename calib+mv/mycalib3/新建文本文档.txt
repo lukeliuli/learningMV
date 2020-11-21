@@ -1,0 +1,8 @@
+原理
+https://www.mathworks.com/help/releases/R2019b/vision/ug/camera-calibration.html
+
+应用
+https://www.mathworks.com/help/releases/R2019b/vision/examples/measuring-planar-objects-with-a-calibrated-camera.html
+
+生成标定图像
+https://www.mathworks.com/help/releases/R2019b/images/ref/checkerboard.html

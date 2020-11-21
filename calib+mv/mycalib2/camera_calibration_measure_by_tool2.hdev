@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.11.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<l>CameraParameters := ['area_scan_division',0.0178755,-312.056,2.20047e-006,2.2e-006,1146.79,973.445,2592,1944]</l>
+<l>CameraPose := [0.00949335,-0.00134993,0.493843,359.512,1.14645,359.763,0]</l>
+<c as_id="measure1d" as_name="Measure 01" as_grp="[2,1]" as_ord="1"></c>
+<l as_id="measure1d" as_name="Measure 01" as_grp="[3,2]" as_ord="2">read_image (Image, 'checkPolyLen1.JPG')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>threshold (Image, Regions1, 200, 255)</l>
+<l>connection (Regions1, ConnectedRegions)</l>
+<c></c>
+<l>select_shape (ConnectedRegions, SelectedRegions1, 'area', 'and',5000,5000000)</l>
+<l>select_shape (SelectedRegions1, SelectedRegions2, 'ra', 'and',100,1000000)</l>
+<l>count_obj (SelectedRegions2, NumScratches)</l>
+<l>piexelperMM := 0.0615</l>
+<l>for I := 1 to NumScratches by 1</l>
+<l>    dev_set_color ('yellow')</l>
+<l>    select_obj (SelectedRegions2, ObjectSelected, I)</l>
+<l>    skeleton (ObjectSelected, Skeleton)</l>
+<c>    </c>
+<l>    *area_center (Skeleton, Area, Row, Column)</l>
+<c>    </c>
+<l>    gen_contours_skeleton_xld (Skeleton, Contours, 1, 'generalize2')</l>
+<c>    </c>
+<l>    length_xld (Contours, ContLength1)</l>
+<l>    *len1 := |ContLength|    </l>
+<l>    sum1 :=sum(ContLength1)</l>
+<l>    lengthmm1 := sum1*piexelperMM</l>
+<c>    </c>
+<l>    contour_to_world_plane_xld (Contours, ContoursTrans, CameraParameters, CameraPose,  'mm')</l>
+<l>    length_xld (ContoursTrans, ContLength2)</l>
+<l>    lengthmm2 :=sum(ContLength2)</l>
+<c>     </c>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
