@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.11.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>* Find light objects in the image</c>
+<l>read_image (Image, 'simple2B.JPG')</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* 图形窗口右键菜单设置结束</c>
+<c></c>
+<l>threshold (Image, Region, 200,255)</l>
+<l>closing_rectangle1(Region,RegionClose,25,25)</l>
+<l>opening_rectangle1(RegionClose,RegionOpen,25,25)</l>
+<c></c>
+<c></c>
+<c></c>
+<l>fill_up (RegionOpen, RegionFillUp)</l>
+<c>* Select rectangular solid objects with certain minimal area</c>
+<l>select_shape (RegionFillUp, Objects, ['area','convexity','rectangularity'], 'and', [20000,0.85,0.60], [4000000,1,1])</l>
+<c>* Filter out features on the border</c>
+<c></c>
+<c></c>
+<l>dilation_rectangle1 (Objects, RectDilated, 35, 35)</l>
+<l>erosion_rectangle1 (Objects, RectEroded, 15, 15)</l>
+<l>difference (RectDilated, RectEroded, RectBorders)</l>
+<c></c>
+<l>count_obj (Objects, NumberOfRegions)</l>
+<l>reduce_domain (Image, RectBorders, ImageReduced)</l>
+<c></c>
+<c></c>
+<l>edges_sub_pix(ImageReduced,Edges,'lanser2',0.1,10,100)</l>
+<l>select_shape_xld (Edges, SelectedEdges, 'contlength', 'and', 100, 10000)</l>
+<l>union_adjacent_contours_xld (SelectedEdges, UnionEdges, 20, 1, 'attr_keep')</l>
+<l>close_contours_xld (UnionEdges, ClosedContours)</l>
+<c></c>
+<l>RectWidth := 0.1115</l>
+<c></c>
+<l>RectHeight := 0.044</l>
+<l>read_cam_par ('903A1.cal', CamParam)</l>
+<l>read_pose ('903A1.dat', CamPose)</l>
+<l>get_rectangle_pose (UnionEdges, CamParam, RectWidth, RectHeight, 'huber', 1, Pose, PoseCov, Error)</l>
+<c></c>
+<l>DegX:= deg(Pose[3])</l>
+<l>DegY:= deg(Pose[4])</l>
+<l>DegZ:= deg(Pose[5])</l>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Based on the calculated pose, fetch and rectify an image of the bar-code field</c>
+<c></c>
+<l>rectify_subimage(ClosedContours, Image, ImageWorld, CamParam, Pose, 320, 126)</l>
+<l>dev_display (ImageWorld)</l>
+<c></c>
+<l>create_bar_code_model ([], [], BarCodeHandle)</l>
+<l>find_bar_code (ImageWorld,ISymbolRegions, BarCodeHandle, 'auto', DecodedDataStrings)</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="pose_quality">
+<interface>
+<ic>
+<par name="PoseCov" base_type="ctrl" dimension="0"/>
+<par name="Error" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="PoseIsGood" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>PoseIsGood := 1</l>
+<l>if (Error &gt; 0.7)</l>
+<l>    PoseIsGood := 0</l>
+<l>    return ()</l>
+<l>endif</l>
+<l>if (PoseCov[21] &gt; 0.05 or PoseCov[28] &gt; 0.05 or abs(PoseCov[22]) &gt; 0.05)</l>
+<l>    PoseIsGood := 0</l>
+<l>    return ()</l>
+<l>endif</l>
+<l>return ()</l>
+</body>
+<docu id="pose_quality">
+<short lang="en_US">Checks quality criteria for estimated pose</short>
+<short lang="zh_CN">Checks quality criteria for estimated pose</short>
+<parameters>
+<parameter id="Error"/>
+<parameter id="PoseCov"/>
+<parameter id="PoseIsGood"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="estimate_pose_from_region">
+<interface>
+<io>
+<par name="RectangularRegions" base_type="iconic" dimension="0"/>
+<par name="Image" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="Cont" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="CamParam" base_type="ctrl" dimension="0"/>
+<par name="WindowHandle" base_type="ctrl" dimension="0"/>
+<par name="RectWidth" base_type="ctrl" dimension="0"/>
+<par name="RectHeight" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="PoseOut" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* Setup error handling</c>
+<l>dev_set_check ('~give_error')</l>
+<l>dev_error_var (ErrorVar, 1)</l>
+<c>* Coordinates of the box vertices</c>
+<l>XCoord := 0.5 * [-RectWidth,RectWidth,RectWidth,-RectWidth,-RectWidth]</l>
+<l>XCoord := [XCoord,XCoord]</l>
+<l>YCoord := 0.5 * [-RectHeight,-RectHeight,RectHeight,RectHeight,-RectHeight]</l>
+<l>YCoord := [YCoord,YCoord]</l>
+<l>ZCoord := [0.01,0.01,0.01,0.01,0.01]</l>
+<l>ZCoord := [0,0,0,0,0,ZCoord]</l>
+<c>* Narrow the Region of interest</c>
+<l>dilation_rectangle1 (RectangularRegions, RectDilated, 9, 9)</l>
+<l>erosion_rectangle1 (RectangularRegions, RectEroded, 9, 9)</l>
+<l>difference (RectDilated, RectEroded, RectBorders)</l>
+<l>select_shape (RectBorders, RectBorders, 'area', 'and', 600, 99999)</l>
+<l>count_obj (RectBorders, Number)</l>
+<l>PoseOut := []</l>
+<l>gen_empty_obj (Cont)</l>
+<l>for I := 1 to Number by 1</l>
+<l>    select_obj (RectBorders, RectSelected, I)</l>
+<c>    * Extract contour in the narrowed ROI</c>
+<l>    reduce_domain (Image, RectSelected, ImageReduced)</l>
+<l>    edges_sub_pix (ImageReduced, Edges, 'canny', 0.7, 20, 30)</l>
+<c>    * Filter out small accident contours and union the rest of the contours</c>
+<l>    select_shape_xld (Edges, SelectedEdges, 'contlength', 'and', 20, 10000)</l>
+<l>    union_adjacent_contours_xld (SelectedEdges, UnionEdges, 10, 1, 'attr_keep')</l>
+<l>    dev_set_color ('medium slate blue')</l>
+<l>    dev_display (UnionEdges)</l>
+<l>    count_obj (UnionEdges, NumberEdges)</l>
+<l>    if (NumberEdges &gt; 0)</l>
+<l>        close_contours_xld (UnionEdges, ClosedContours)</l>
+<c>        * Estimate pose of the rectangle</c>
+<l>        get_rectangle_pose (UnionEdges, CamParam, RectWidth, RectHeight, 'huber', 2, Pose, PoseCov, Error)</l>
+<l>        if (ErrorVar == H_MSG_TRUE)</l>
+<l>            pose_quality (PoseCov, Error, PoseIsGood)</l>
+<l>            if (PoseIsGood)</l>
+<l>                pose_to_hom_mat3d (Pose, HomMat3D)</l>
+<l>                affine_trans_point_3d (HomMat3D, [0,0], [0,0], [0,1], Qx, Qy, Qz)</l>
+<l>                if (Qz[1] - Qz[0] &gt; 0)</l>
+<c>                    * Invert the Z direction of the pose, if it is pointing away from the camera</c>
+<l>                    Pose[4] := Pose[4] + 180</l>
+<l>                    Pose[5] := -Pose[5]</l>
+<l>                endif</l>
+<l>                PoseOut := [PoseOut,Pose]</l>
+<l>                concat_obj (Cont, ClosedContours, Cont)</l>
+<c>                * Draw the frame box</c>
+<l>                pose_to_hom_mat3d (Pose, HomMat3D)</l>
+<l>                affine_trans_point_3d (HomMat3D, XCoord, YCoord, ZCoord, Qx, Qy, Qz)</l>
+<l>                project_3d_point (Qx, Qy, Qz, CamParam, Row, Column)</l>
+<l>                gen_contour_polygon_xld (BoxBottom, Row[0:4], Column[0:4])</l>
+<l>                dev_set_color ('green')</l>
+<l>                dev_display (BoxBottom)</l>
+<l>                dev_set_color ('red')</l>
+<l>                for J := 0 to 3 by 1</l>
+<l>                    gen_contour_polygon_xld (BoxEdge, [Row[J],Row[J + 5]], [Column[J],Column[J + 5]])</l>
+<l>                    dev_display (BoxEdge)</l>
+<l>                endfor</l>
+<l>                gen_contour_polygon_xld (BoxCover, Row[5:9], Column[5:9])</l>
+<l>                dev_set_color ('blue')</l>
+<l>                dev_display (BoxCover)</l>
+<l>            endif</l>
+<l>        endif</l>
+<l>    endif</l>
+<l>endfor</l>
+<c>* Restore the state of the error handling</c>
+<l>dev_error_var (ErrorVar, 0)</l>
+<l>dev_set_check ('give_error')</l>
+<l>return ()</l>
+</body>
+<docu id="estimate_pose_from_region">
+<short lang="en_US">extracts contour of a rectangle in a region and estimates its pose; draws a box ontop of it</short>
+<short lang="zh_CN">extracts contour of a rectangle in a region and estimates its pose; draws a box ontop of it</short>
+<parameters>
+<parameter id="CamParam"/>
+<parameter id="Cont"/>
+<parameter id="Image"/>
+<parameter id="PoseOut"/>
+<parameter id="RectHeight"/>
+<parameter id="RectWidth"/>
+<parameter id="RectangularRegions"/>
+<parameter id="WindowHandle"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="rectify_subimage">
+<interface>
+<io>
+<par name="Frame" base_type="iconic" dimension="0"/>
+<par name="Image" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="ImageRect" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="CamParam" base_type="ctrl" dimension="0"/>
+<par name="Pose" base_type="ctrl" dimension="0"/>
+<par name="Width" base_type="ctrl" dimension="0"/>
+<par name="Height" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<l>contour_to_world_plane_xld (Frame, ContoursTrans, CamParam, Pose, 1)</l>
+<l>smallest_rectangle1_xld (ContoursTrans, MinY, MinX, MaxY, MaxX)</l>
+<l>set_origin_pose (Pose, MinX, MinY, 0, PoseNewOrigin)</l>
+<l>if (|Width| == 1)</l>
+<c>    * forces a desired size of the target image</c>
+<l>    Scale := ((MaxX - MinX) / Width + (MaxY - MinY) / Height) / 2</l>
+<l>    Size := [Width,Height]</l>
+<l>else</l>
+<c>    * preserves similar pixel size as in the original</c>
+<l>    image_points_to_world_plane (CamParam, Pose, [0,0,1], [0,1,0], 1, WX, WY)</l>
+<l>    distance_pp (WY[0], WX[0], WY[1], WX[1], WL1)</l>
+<l>    distance_pp (WY[0], WX[0], WY[2], WX[2], WL2)</l>
+<l>    Scale := (WL1 + WL2) / 2</l>
+<l>    Size := [MaxX - MinX,MaxY - MinY] / Scale</l>
+<l>endif</l>
+<l>image_to_world_plane (Image, ImageRect, CamParam, PoseNewOrigin, Size[0], Size[1], Scale, 'bilinear')</l>
+<l>return ()</l>
+</body>
+<docu id="rectify_subimage">
+<parameters>
+<parameter id="CamParam"/>
+<parameter id="Frame"/>
+<parameter id="Height"/>
+<parameter id="Image"/>
+<parameter id="ImageRect"/>
+<parameter id="Pose"/>
+<parameter id="Width"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="flip_x">
+<interface>
+<ic>
+<par name="Pose" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="PoseOut" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* modify the pose, as if the object was flipped around its x-axis</c>
+<l>PoseOut := Pose</l>
+<l>PoseOut[3] := Pose[3] + 180</l>
+<l>PoseOut[4] := -Pose[4]</l>
+<l>PoseOut[5] := -Pose[5]</l>
+<l>return ()</l>
+</body>
+<docu id="flip_x">
+<short lang="en_US">modify the pose, as if the object was flipped around its x-axis</short>
+<short lang="zh_CN">modify the pose, as if the object was flipped around its x-axis</short>
+<parameters>
+<parameter id="Pose"/>
+<parameter id="PoseOut"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
