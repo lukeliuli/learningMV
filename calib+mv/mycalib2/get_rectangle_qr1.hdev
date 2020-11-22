@@ -4,58 +4,23 @@
 <interface/>
 <body>
 <c>* Find light objects in the image</c>
-<l>read_image (Image, 'simple2B.JPG')</l>
+<l>read_image (Image, 'qr2.JPG')</l>
 <c></c>
+<l>create_data_code_2d_model ('QR Code', [], [], DataCodeHandle)</l>
+<l>find_data_code_2d (Image, SymbolXLDs, DataCodeHandle, [], [], ResultHandles, DecodedDataStrings)</l>
 <c></c>
-<c></c>
-<c>* 图形窗口右键菜单设置结束</c>
-<c></c>
-<l>threshold (Image, Region, 200,255)</l>
-<l>closing_rectangle1(Region,RegionClose,25,25)</l>
-<l>opening_rectangle1(RegionClose,RegionOpen,25,25)</l>
-<c></c>
-<c></c>
-<c></c>
-<l>fill_up (RegionOpen, RegionFillUp)</l>
-<c>* Select rectangular solid objects with certain minimal area</c>
-<l>select_shape (RegionFillUp, Objects, ['area','convexity','rectangularity'], 'and', [20000,0.85,0.60], [4000000,1,1])</l>
-<c>* Filter out features on the border</c>
-<c></c>
-<c></c>
-<l>dilation_rectangle1 (Objects, RectDilated, 35, 35)</l>
-<l>erosion_rectangle1 (Objects, RectEroded, 15, 15)</l>
-<l>difference (RectDilated, RectEroded, RectBorders)</l>
-<c></c>
-<l>count_obj (Objects, NumberOfRegions)</l>
-<l>reduce_domain (Image, RectBorders, ImageReduced)</l>
-<c></c>
-<c></c>
-<l>edges_sub_pix(ImageReduced,Edges,'lanser2',0.1,10,100)</l>
-<l>select_shape_xld (Edges, SelectedEdges, 'contlength', 'and', 100, 10000)</l>
-<l>union_adjacent_contours_xld (SelectedEdges, UnionEdges, 20, 1, 'attr_keep')</l>
-<l>close_contours_xld (UnionEdges, ClosedContours)</l>
-<c></c>
-<l>RectWidth := 0.1115</l>
-<c></c>
-<l>RectHeight := 0.044</l>
+<c>*************************坐标转换见同文件夹ppt</c>
+<l>RectWidth := 0.043</l>
+<l>RectHeight := 0.043</l>
 <l>read_cam_par ('903A1.cal', CamParam)</l>
 <l>read_pose ('903A1.dat', CamPose)</l>
-<l>get_contour_xld(UnionEdges,rows,cols)</l>
-<l>get_rectangle_pose (UnionEdges, CamParam, RectWidth, RectHeight, 'huber', 1, Pose, PoseCov, Error)</l>
+<l>hW := RectHeight/2</l>
 <c></c>
-<l>DegX:= deg(Pose[3])</l>
-<l>DegY:= deg(Pose[4])</l>
-<l>DegZ:= deg(Pose[5])</l>
+<l>get_contour_xld(SymbolXLDs,Rows,Cols)</l>
+<l>pointXs :=[hW,hW,-hW,-hW,hW]</l>
+<l>pointYs := [-hW,hW,hW,-hW,-hW]</l>
+<l>vector_to_pose (pointXs,pointYs, [0.0,0.0,0.0,0.0,0.0], Rows, Cols, CamParam, 'iterative', 'error', Pose, Quality)</l>
 <c></c>
-<c></c>
-<c>* </c>
-<c>* Based on the calculated pose, fetch and rectify an image of the bar-code field</c>
-<c></c>
-<l>rectify_subimage(ClosedContours, Image, ImageWorld, CamParam, Pose, 320, 126)</l>
-<l>dev_display (ImageWorld)</l>
-<c></c>
-<l>create_bar_code_model ([], [], BarCodeHandle)</l>
-<l>find_bar_code (ImageWorld,ISymbolRegions, BarCodeHandle, 'auto', DecodedDataStrings)</l>
 <c></c>
 </body>
 <docu id="main">
@@ -268,6 +233,39 @@
 <parameters>
 <parameter id="Pose"/>
 <parameter id="PoseOut"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="sort_center_contour_xld">
+<interface>
+<io>
+<par name="SelectedContours" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="OrderedXLDs" base_type="iconic" dimension="0"/>
+</oo>
+</interface>
+<body>
+<l>area_center_points_xld (SelectedContours, Area, XLDRow, XLDColumn)</l>
+<l>RowCenter := (max(XLDRow) + min(XLDRow)) / 2</l>
+<l>ColumnCenter := (max(XLDColumn) + min(XLDColumn)) / 2</l>
+<l>gen_cross_contour_xld (Cross, RowCenter, ColumnCenter, 6, 0.785398)</l>
+<l>tuple_atan2 (XLDRow - RowCenter, XLDColumn - ColumnCenter, Angle)</l>
+<l>tuple_sort_index (Angle, Indices)</l>
+<l>gen_empty_obj (OrderedXLDs)</l>
+<l>for c := 0 to |XLDRow| - 1 by 1</l>
+<l>    select_obj (SelectedContours, Contour, Indices[c] + 1)</l>
+<l>    concat_obj (OrderedXLDs, Contour, OrderedXLDs)</l>
+<l>    dev_display (Contour)</l>
+<l>endfor</l>
+<l>return ()</l>
+</body>
+<docu id="sort_center_contour_xld">
+<short lang="en_US">sorts xld contours clockwise regarding their orientation with respect to a given center point</short>
+<short lang="zh_CN">sorts xld contours clockwise regarding their orientation with respect to a given center point</short>
+<parameters>
+<parameter id="OrderedXLDs"/>
+<parameter id="SelectedContours"/>
 </parameters>
 </docu>
 </procedure>
