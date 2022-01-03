@@ -10,3 +10,6 @@
 9. 从园和矩形中获得物体的3维形状 get_circle_pose,get_rectangle_pose
 10. 药丸检测checkBlister
 11. 光流 optic_flow optical_flow_mg 
+
+halcon19，20在OCR方面引入深度学习效果非常好，现有的OCR可以不用了
+halcon在异常物体检测上面引入深度学习，通过少量正样本，异常检测更好了。如果不看细节，现有的表面缺陷检测可以不用了。
