@@ -7,4 +7,4 @@
 6. calib+mv:标定相关 
 7. 二维码识别:例子中 qrcode_simple.hev
 8. 一维码识别： try_to_find_bar_code，find_bar_code
-9. 
+9. 从园和矩形中获得物体的3维形状 get_circle_pose,get_rectangle_pose
