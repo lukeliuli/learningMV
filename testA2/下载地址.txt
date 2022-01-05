@@ -1,0 +1,12 @@
+1. tesseract源代码地址 
+https://digi.bib.uni-mannheim.de/tesseract/
+https://github.com/tesseract-ocr/tesseract
+
+2. zxing
+
+https://github.com/zxing/zxing
+
+
+
+ https://blog.csdn.net/showgea/article/details/82656515
+
