@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="20.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* This example shows how find_text can be used to find and read</c>
+<c>* text. Furthermore, the most important parameters are explained</c>
+<c>* </c>
+<c></c>
+<c>* Read OCR classifier and create the text model</c>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Initialize display variables</c>
+<c>* </c>
+<l>read_ocr_class_mlp ('DotPrint_0-9A-Z_Rej', OCRHandle)</l>
+<l>create_text_model_reader ('auto', OCRHandle, TextModel)</l>
+<c>* </c>
+<l>read_image (Needle, 'needle1')</l>
+<l>get_image_size (Needle, Width, Height)</l>
+<l>Px :=Width/2</l>
+<l>Py :=Height/2</l>
+<c></c>
+<l>read_image (Image, 'needle1')</l>
+<l>create_text_model_reader ('manual', [], TextModel2)</l>
+<l>set_text_model_param (TextModel2, 'manual_is_dotprint', 'true')</l>
+<l>*set_text_model_param (TextModel2, 'manual_char_width', 21)</l>
+<l>*set_text_model_param (TextModel2, 'manual_char_height', 24)</l>
+<l>*set_text_model_param (TextModel2, 'manual_stroke_width', 4.4)</l>
+<l>*set_text_model_param (TextModel2, 'manual_return_punctuation', 'false')</l>
+<l>*set_text_model_param (TextModel2, 'manual_return_separators', 'false')</l>
+<l>*set_text_model_param (TextModel2, 'manual_uppercase_only', 'true')</l>
+<l>*set_text_model_param (TextModel2, 'manual_fragment_size_min', 4)</l>
+<l>*set_text_model_param (TextModel2, 'manual_eliminate_border_blobs', 'true')</l>
+<l>*set_text_model_param (TextModel2, 'manual_base_line_tolerance', 0.2)</l>
+<l>*set_text_model_param (TextModel2, 'manual_max_line_num', 1)</l>
+<c></c>
+<l>find_text (Image, TextModel2, TextResult)</l>
+<l>get_text_object (TextLines, TextResult, 'all_lines')</l>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* It is possible to restrict the segmentation to text of a certain polarity</c>
+<c>* using the set_text_model_param operator</c>
+<c>* Read OCR classifier and create the text model</c>
+<l>read_ocr_class_mlp ('DotPrint_0-9A-Z_Rej', OCRHandle)</l>
+<l>create_text_model_reader ('auto', OCRHandle, TextModel)</l>
+<c>* </c>
+<l>set_text_model_param (TextModel, 'polarity', 'dark_on_light')</l>
+<c>* </c>
+<l>find_text (Image, TextModel, TextResult)</l>
+<c>* </c>
+<l>get_text_object (TextLines, TextResult, 'all_lines')</l>
+<c></c>
+<c>* </c>
+<c>* Furthermore, it is possible to restrict the segmentation to text attributes</c>
+<c>* such as the character height, width or stroke width</c>
+<l>set_text_model_param (TextModel, 'polarity', 'dark_on_light')</l>
+<l>set_text_model_param (TextModel, 'min_char_height', 10)</l>
+<c>* </c>
+<l>find_text (Image, TextModel, TextResult)</l>
+<c>* </c>
+<l>get_text_object (TextLines, TextResult, 'all_lines')</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Display the single characters</c>
+<l>smallest_rectangle1 (TextLines, Row1, Column1, Row2, Column2)</l>
+<l>get_text_result (TextResult, 'class', SingleCharacters)</l>
+<l>tuple_sum (SingleCharacters, TextLineCharacters)</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
