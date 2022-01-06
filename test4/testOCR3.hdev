@@ -20,13 +20,7 @@
 <l>get_image_size (Needle, Width, Height)</l>
 <l>Px :=Width/2</l>
 <l>Py :=Height/2</l>
-<l>text_line_orientation (Needle, Needle, 35, -0.523599, 0.523599, OrientationAngle)</l>
-<l>*hom_mat2d_identity (HomMat2DIdentity)</l>
-<l>*hom_mat2d_rotate (HomMat2DIdentity, -OrientationAngle, Px, Py, HomMat2DRotate)</l>
-<l>*affine_trans_image (Needle, Image, HomMat2DRotate, 'constant', 'false')</l>
-<c>* </c>
-<c>* Without setting further parameters, find_text will find and read all</c>
-<c>* text within the input image</c>
+<c></c>
 <l>read_image (Image, 'needle1')</l>
 <l>create_text_model_reader ('manual', [], TextModel2)</l>
 <l>set_text_model_param (TextModel2, 'manual_is_dotprint', 'true')</l>
