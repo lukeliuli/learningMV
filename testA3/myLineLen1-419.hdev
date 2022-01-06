@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<hdevelop file_version="1.2" halcon_version="20.11.1.0">
+<hdevelop file_version="1.2" halcon_version="18.11.0.1">
 <procedure name="main">
 <interface/>
 <body>
@@ -10,25 +10,24 @@
 <l>dev_close_window ()</l>
 <l>dev_open_window (0, 0, 640, 480, 'black', WindowHandle)</l>
 <c></c>
-<l>CameraParameters := ['area_scan_tilt_division',0.0018288,29542.1,1.54337e-05,0.00760852,33.9548,3.00103e-06,3e-06,310.091,239.571,640,480]</l>
-<l>CameraPose := [0.0643385,-0.0186334,0.435375,1.07932,358.678,179.803,0]</l>
+<l>CameraParameters := ['area_scan_tilt_division',0.00818399,50.593,0.00730755,32.254,357.088,3.10354e-006,3e-006,1296.93,943.414,2592,1944]</l>
+<l>CameraPose := [0.00147211,0.00672903,0.209777,35.0497,358.554,1.86037,0]</l>
 <c></c>
-<l>read_image (Image, 'D:/GITHUB/learningMV/images/line1.jpg')</l>
-<l>read_image (Image, 'c:/test4.jpg')</l>
+<l>read_image (Image, 'testLine2.jpg')</l>
 <l>dev_display (Image)</l>
 <c></c>
 <c>* Extract color lines from the image.  Note that since the color line extractor</c>
 <c>* cannot discern between bright or dark lines (in fact, this criterion does not</c>
 <c>* even make sense for color lines), the lines corresponding to the colored</c>
 <c>* cables are simply selected based on their length.</c>
-<l>lines_color (Image, Lines, 3.5, 0, 12, 'true', 'false')</l>
-<l>select_contours_xld (Lines, LongLines, 'contour_length', 20, 100000, 0, 0)</l>
+<l>lines_color (Image, Lines, 5, 0, 22, 'true', 'false')</l>
+<l>select_contours_xld (Lines, LongLines, 'contour_length', 1000, 2000, 0, 0)</l>
 <l>dev_display (Image)</l>
 <c></c>
 <l>count_obj (LongLines, Number)</l>
 <l>gen_empty_obj (EdgesL)</l>
 <l>gen_empty_obj (EdgesR)</l>
-<l>K :=32</l>
+<l>K :=1</l>
 <l>select_obj (LongLines, Line, K)</l>
 <l>get_contour_xld (Line, Row, Col)</l>
 <l>get_contour_attrib_xld (Line, 'angle', Angle)</l>
@@ -51,7 +50,15 @@
 <l>dev_set_color ('yellow')</l>
 <l>dev_display (EdgeL)</l>
 <l>dev_display (EdgeR)</l>
-<l>image_points_to_world_plane (CameraParameters, CameraPose, Row, Col, 'mm', WorldX, WorldY)</l>
+<c></c>
+<c></c>
+<l> contour_to_world_plane_xld (Line, Contour, CameraParameters, CameraPose, 'mm')</l>
+<c>* Calibration 01: Extract mark center points in world coordinates [mm]</c>
+<l> get_contour_xld (Contour, WorldX, WorldY)</l>
+<c></c>
+<l>* distance_pp(WorldX[0], WorldY[0],WorldX[|WorldY|-1], WorldY[|WorldY|-1],distTmp)</l>
+<c></c>
+<l>*image_points_to_world_plane (CameraParameters, CameraPose, Row, Col, 'mm', WorldX, WorldY)</l>
 <c>    </c>
 <l>Number := |WorldX|</l>
 <l>dist := 0.0</l>
@@ -62,6 +69,14 @@
 <l>    dist := dist+distTmp</l>
 <l>endfor</l>
 <c></c>
+<c></c>
+<l>dist := 0.0</l>
+<l>for I := 10 to Number-1 by 10</l>
+<c>    </c>
+<c>   </c>
+<l>    distance_pp(WorldX[I-10], WorldY[I-10],WorldX[I], WorldY[I],distTmp)</l>
+<l>    dist := dist+distTmp</l>
+<l>endfor</l>
 <l>* rgb1_to_gray (Image, GrayImage)</l>
 <c></c>
 <c></c>
